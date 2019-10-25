@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <!--开启spring的注解扫描,扫描service层-->
+    <context:component-scan base-package="service"/>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/test"></property>
+        <property name="username" value="root"></property>
+        <property name="password" value="123456"></property>
+    </bean>
+
+    <!--注入sqlSessionFactory(Mybatis-Spring整合的核心,
+    通过sqlSessionFactory来产生线程安全的sqlSession,即SqlSessionTemplate)-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--指定数据源-->
+        <property name="dataSource" ref="dataSource" />
+        <!--可以指定mybatis的配置文件,用来覆盖一些默认的配置-->
+        <!--<property name="configLocation" value="classpath:mybatis-config.xml"></property>-->
+        <!--指定mapper.xml映射文件路径-->
+        <property name="mapperLocations" value="classpath:mappers/**/*.xml" />
+    </bean>
+
+    <!--扫描标注有@Mapper的接口映射文件
+    生成的Mapper对象里面会包含sqlSession(SqlSessionTemplate),mapperInterface(映射文件接口类)-->
+    <mybatis:scan base-package="dao.**" />
+
+    <!--创建事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <constructor-arg ref="dataSource" />
+    </bean>
+    <!--开启spring事务,并指定事务管理器-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
